@@ -9,8 +9,13 @@ import com.inspiredandroid.kai.network.OpenAICompatibleEmptyResponseException
 import com.inspiredandroid.kai.network.Requests
 import com.inspiredandroid.kai.network.ServiceCredentials
 import com.inspiredandroid.kai.network.dtos.gemini.extractText
+import com.inspiredandroid.kai.network.mcp.McpClient
+import com.inspiredandroid.kai.network.mcp.McpServer
 import com.inspiredandroid.kai.network.tools.Tool
 import com.inspiredandroid.kai.network.tools.ToolInfo
+import com.inspiredandroid.kai.tools.McpTool
+import com.inspiredandroid.kai.tools.SkillTool
+import kotlinx.serialization.encodeToString
 import com.inspiredandroid.kai.platformName
 import com.inspiredandroid.kai.toHumanReadableDate
 import com.inspiredandroid.kai.ui.chat.History
@@ -314,7 +319,7 @@ class RemoteDataRepository(
         instanceId: String,
     ): String {
         val creds = instanceCredentials(instanceId, service)
-        val tools = if (supportsTools(creds.modelId)) getAvailableTools() else emptyList()
+        val tools = if (supportsTools(creds.modelId)) getAvailableTools() + DynamicToolRegistry.getTools() else emptyList()
 
         return when (service) {
             Service.Gemini -> {
@@ -362,6 +367,9 @@ class RemoteDataRepository(
     }
 
     override suspend fun ask(question: String?, file: PlatformFile?) {
+        // Refresh dynamic tools (skills + MCP) before each ask
+        refreshDynamicTools()
+
         // Read file bytes outside of StateFlow.update (readBytes is suspend)
         val rawBytes = file?.readBytes()
         val fileMimeType = file?.mimeType()?.toString()
@@ -923,10 +931,83 @@ class RemoteDataRepository(
     }
 
     // Tool management
-    override fun getToolDefinitions(): List<ToolInfo> = getPlatformToolDefinitions().map { it.copy(isEnabled = appSettings.isToolEnabled(it.id, defaultEnabled = it.isEnabled)) }
+    override fun getToolDefinitions(): List<ToolInfo> {
+        val platformTools = getPlatformToolDefinitions().map { it.copy(isEnabled = appSettings.isToolEnabled(it.id, defaultEnabled = it.isEnabled)) }
+        val skillTools = getSkills().map { skill ->
+            ToolInfo(
+                id = "skill_${skill.id}",
+                name = skill.name,
+                description = skill.description,
+                isEnabled = skill.enabled,
+            )
+        }
+        val mcpServerTools = getMcpServers().map { server ->
+            ToolInfo(
+                id = "mcp_server_${server.id}",
+                name = server.name,
+                description = "MCP Server: ${server.url}",
+                isEnabled = server.enabled,
+            )
+        }
+        return platformTools + skillTools + mcpServerTools
+    }
 
     override fun setToolEnabled(toolId: String, enabled: Boolean) {
         appSettings.setToolEnabled(toolId, enabled)
+    }
+
+    // Skills
+    override fun getSkills(): List<Skill> {
+        val json = appSettings.getSkillsJson()
+        if (json.isBlank() || json == "[]") return emptyList()
+        return try {
+            SharedJson.decodeFromString<List<Skill>>(json)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    override fun saveSkills(skills: List<Skill>) {
+        appSettings.setSkillsJson(SharedJson.encodeToString(skills))
+    }
+
+    // MCP Servers
+    override fun getMcpServers(): List<McpServer> {
+        val json = appSettings.getMcpServersJson()
+        if (json.isBlank() || json == "[]") return emptyList()
+        return try {
+            SharedJson.decodeFromString<List<McpServer>>(json)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    override fun saveMcpServers(servers: List<McpServer>) {
+        appSettings.setMcpServersJson(SharedJson.encodeToString(servers))
+    }
+
+    private suspend fun refreshDynamicTools() {
+        val dynamicTools = mutableListOf<Tool>()
+
+        // Load MCP server tools
+        for (server in getMcpServers().filter { it.enabled }) {
+            try {
+                val initialized = McpClient.initialize(server.url)
+                if (initialized) {
+                    val tools = McpClient.listTools(server.url)
+                    dynamicTools.addAll(tools.map { McpTool(server, it) })
+                }
+            } catch (_: Exception) {
+                // Skip unreachable servers
+            }
+        }
+
+        // Load skill tools
+        for (skill in getSkills().filter { it.enabled }) {
+            dynamicTools.add(SkillTool(skill))
+        }
+
+        DynamicToolRegistry.registerTools(dynamicTools)
     }
 
     // Soul (system prompt)

@@ -116,6 +116,37 @@ Tool availability is controlled at multiple levels:
 
 The platform layer assembles the final list of available tools by checking all gates and per-tool settings, and only enabled tools are sent to the AI provider.
 
+## Skills (Custom Webhook Tools)
+
+Users can define custom tools that POST to a URL with JSON arguments. A skill has a name, description, webhook URL, and an optional list of parameters (each with a name, description, type, and required flag).
+
+When a skill is enabled, it appears as an available tool for the AI. On invocation, the app POSTs a JSON body with the tool arguments to the configured URL and returns the response body as the tool result. Skills use a 30-second timeout.
+
+Skills are created, edited, toggled, and deleted from the **Integrations** tab in settings.
+
+## MCP Servers (Model Context Protocol)
+
+Users can connect MCP servers via HTTP. The app speaks JSON-RPC 2.0 over HTTP POST using the MCP Streamable HTTP transport.
+
+### Protocol flow
+
+1. **initialize** — sent on each request before tool calls; establishes protocol version `2024-11-05`
+2. **notifications/initialized** — notification sent after a successful initialize response (fire-and-forget)
+3. **tools/list** — fetches the server's available tool definitions
+4. **tools/call** — executes a named tool with arguments; result is extracted from the `content` array
+
+### Tool availability
+
+At the start of each `ask()` call, the app calls `refreshDynamicTools()` which:
+1. Iterates all enabled MCP servers and calls `initialize` + `listTools` on each
+2. Creates a `McpTool` instance per discovered tool
+3. Creates a `SkillTool` instance per enabled skill
+4. Registers all in `DynamicToolRegistry`
+
+The `ToolExecutor` and `askWithService` both consult `DynamicToolRegistry` so the AI can invoke dynamic tools the same way it invokes built-in tools.
+
+MCP servers are created, toggled, and deleted from the **Integrations** tab in settings.
+
 ## Settings UI
 
 The tools tab in settings displays a responsive grid of toggle cards:
@@ -148,9 +179,15 @@ When loading, a single composite row appears at the bottom of the chat list cont
 | `composeApp/src/commonMain/.../network/tools/ToolInfo.kt` | Display metadata for settings |
 | `composeApp/src/commonMain/.../data/ToolExecutor.kt` | Execution, JSON parsing, timeout, truncation |
 | `composeApp/src/commonMain/.../data/RemoteDataRepository.kt` | Tool loop (Gemini + OpenAI), parallel execution |
+| `composeApp/src/commonMain/.../data/DynamicToolRegistry.kt` | Runtime registry for skill and MCP tools |
+| `composeApp/src/commonMain/.../data/Skill.kt` | Skill and SkillParameter data classes |
+| `composeApp/src/commonMain/.../tools/SkillTool.kt` | HTTP webhook tool implementation |
+| `composeApp/src/commonMain/.../network/mcp/McpServer.kt` | MCP server data class |
+| `composeApp/src/commonMain/.../network/mcp/McpClient.kt` | JSON-RPC 2.0 MCP HTTP client |
+| `composeApp/src/commonMain/.../tools/McpTool.kt` | Tool wrapping an MCP server tool definition |
 | `composeApp/src/commonMain/.../tools/CommonTools.kt` | Common tool implementations |
 | `composeApp/src/commonMain/.../Platform.kt` | Platform expect declarations for available tools |
 | `composeApp/src/androidMain/.../Platform.android.kt` | Android-specific tool implementations |
-| `composeApp/src/commonMain/.../ui/settings/SettingsScreen.kt` | ToolsContent, ToolItem composables |
+| `composeApp/src/commonMain/.../ui/settings/SettingsScreen.kt` | ToolsContent, IntegrationsContent composables |
 | `composeApp/src/commonMain/.../ui/chat/composables/ToolMessage.kt` | Executing/completed UI indicators |
-| `composeApp/src/commonMain/.../data/AppSettings.kt` | Tool enabled state persistence |
+| `composeApp/src/commonMain/.../data/AppSettings.kt` | Tool enabled state, skills JSON, MCP servers JSON persistence |

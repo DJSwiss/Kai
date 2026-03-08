@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.inspiredandroid.kai.DaemonController
 import com.inspiredandroid.kai.data.DataRepository
 import com.inspiredandroid.kai.data.Service
+import com.inspiredandroid.kai.data.Skill
+import com.inspiredandroid.kai.network.mcp.McpServer
 import com.inspiredandroid.kai.getBackgroundDispatcher
 import com.inspiredandroid.kai.isDesktopPlatform
 import com.inspiredandroid.kai.isEmailSupported
@@ -80,6 +82,12 @@ class SettingsViewModel(
             uiScale = dataRepository.getUiScale(),
             onChangeUiScale = ::onChangeUiScale,
             showUiScale = isDesktopPlatform,
+            skills = dataRepository.getSkills(),
+            mcpServers = dataRepository.getMcpServers(),
+            onSaveSkill = ::onSaveSkill,
+            onDeleteSkill = ::onDeleteSkill,
+            onSaveMcpServer = ::onSaveMcpServer,
+            onDeleteMcpServer = ::onDeleteMcpServer,
         ),
     )
 
@@ -317,6 +325,42 @@ class SettingsViewModel(
                 },
             )
         }
+    }
+
+    private fun onSaveSkill(skill: Skill) {
+        val current = dataRepository.getSkills().toMutableList()
+        val existingIndex = current.indexOfFirst { it.id == skill.id }
+        if (existingIndex >= 0) {
+            current[existingIndex] = skill
+        } else {
+            current.add(skill)
+        }
+        dataRepository.saveSkills(current)
+        _state.update { it.copy(skills = current) }
+    }
+
+    private fun onDeleteSkill(skillId: String) {
+        val current = dataRepository.getSkills().filter { it.id != skillId }
+        dataRepository.saveSkills(current)
+        _state.update { it.copy(skills = current) }
+    }
+
+    private fun onSaveMcpServer(server: McpServer) {
+        val current = dataRepository.getMcpServers().toMutableList()
+        val existingIndex = current.indexOfFirst { it.id == server.id }
+        if (existingIndex >= 0) {
+            current[existingIndex] = server
+        } else {
+            current.add(server)
+        }
+        dataRepository.saveMcpServers(current)
+        _state.update { it.copy(mcpServers = current) }
+    }
+
+    private fun onDeleteMcpServer(serverId: String) {
+        val current = dataRepository.getMcpServers().filter { it.id != serverId }
+        dataRepository.saveMcpServers(current)
+        _state.update { it.copy(mcpServers = current) }
     }
 
     private fun checkAllConnections() {

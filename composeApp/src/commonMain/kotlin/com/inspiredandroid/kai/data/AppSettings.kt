@@ -384,6 +384,20 @@ class AppSettings(private val settings: Settings) {
         settings.putInt(KEY_EMAIL_POLL_INTERVAL, minutes)
     }
 
+    // Skills (custom webhook tools)
+    fun getSkillsJson(): String = settings.getString(KEY_SKILLS, "[]")
+
+    fun setSkillsJson(json: String) {
+        settings.putString(KEY_SKILLS, json)
+    }
+
+    // MCP Servers
+    fun getMcpServersJson(): String = settings.getString(KEY_MCP_SERVERS, "[]")
+
+    fun setMcpServersJson(json: String) {
+        settings.putString(KEY_MCP_SERVERS, json)
+    }
+
     companion object {
         const val KEY_CURRENT_SERVICE_ID = "current_service_id"
         const val KEY_APP_OPENS = "app_opens"
@@ -410,6 +424,8 @@ class AppSettings(private val settings: Settings) {
         const val KEY_FREE_FALLBACK_ENABLED = "free_fallback_enabled"
         const val KEY_SERVICES_MIGRATION_COMPLETE = "services_migration_complete_v1"
         const val KEY_UI_SCALE = "ui_scale"
+        const val KEY_SKILLS = "skills_json"
+        const val KEY_MCP_SERVERS = "mcp_servers_json"
 
         const val DEFAULT_MEMORY_INSTRUCTIONS =
             "You have persistent memory across conversations. " +

@@ -33,7 +33,7 @@ class ToolExecutor {
     }
 
     suspend fun executeTool(name: String, arguments: String): String {
-        val tools = getAvailableTools()
+        val tools = getAvailableTools() + DynamicToolRegistry.getTools()
         val tool = tools.find { it.schema.name == name }
             ?: return """{"success": false, "error": "Unknown tool: $name"}"""
 

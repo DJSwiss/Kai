@@ -103,7 +103,10 @@ import com.inspiredandroid.kai.data.HeartbeatLogEntry
 import com.inspiredandroid.kai.data.MemoryEntry
 import com.inspiredandroid.kai.data.ScheduledTask
 import com.inspiredandroid.kai.data.Service
+import com.inspiredandroid.kai.data.Skill
+import com.inspiredandroid.kai.data.SkillParameter
 import com.inspiredandroid.kai.data.TaskStatus
+import com.inspiredandroid.kai.network.mcp.McpServer
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.ui.outlineTextFieldColors
 import kai.composeapp.generated.resources.Res
@@ -235,6 +238,7 @@ fun SettingsScreenContent(
             val maxContentWidth = when (uiState.currentTab) {
                 SettingsTab.Tools -> 900.dp
                 SettingsTab.General -> 900.dp
+                SettingsTab.Integrations -> 700.dp
                 else -> 500.dp
             }
             Column(
@@ -255,6 +259,10 @@ fun SettingsScreenContent(
                             tools = uiState.tools,
                             onToggleTool = uiState.onToggleTool,
                         )
+                    }
+
+                    SettingsTab.Integrations -> {
+                        IntegrationsContent(uiState = uiState)
                     }
                 }
 
@@ -291,7 +299,7 @@ private fun SettingsTabSelector(
     onSelectTab: (SettingsTab) -> Unit,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val count = 3
+    val count = 4
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
@@ -306,7 +314,7 @@ private fun SettingsTabSelector(
         SegmentedButton(
             selected = currentTab == SettingsTab.Services,
             onClick = { onSelectTab(SettingsTab.Services) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = count),
+            shape = SegmentedButtonDefaults.itemShape(index = if (isRtl) count - 2 else 1, count = count),
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
         ) {
             Text(stringResource(Res.string.settings_tab_services))
@@ -314,10 +322,18 @@ private fun SettingsTabSelector(
         SegmentedButton(
             selected = currentTab == SettingsTab.Tools,
             onClick = { onSelectTab(SettingsTab.Tools) },
-            shape = SegmentedButtonDefaults.itemShape(index = if (isRtl) 0 else count - 1, count = count),
+            shape = SegmentedButtonDefaults.itemShape(index = if (isRtl) 1 else 2, count = count),
             modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
         ) {
             Text(stringResource(Res.string.settings_tab_tools))
+        }
+        SegmentedButton(
+            selected = currentTab == SettingsTab.Integrations,
+            onClick = { onSelectTab(SettingsTab.Integrations) },
+            shape = SegmentedButtonDefaults.itemShape(index = if (isRtl) 0 else count - 1, count = count),
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+        ) {
+            Text("Integrations")
         }
     }
 }
@@ -1356,6 +1372,406 @@ private fun ToolItem(
                 checked = tool.isEnabled,
                 onCheckedChange = onToggle,
             )
+        }
+    }
+}
+
+@Composable
+private fun IntegrationsContent(uiState: SettingsUiState) {
+    var showAddMcpSheet by remember { mutableStateOf(false) }
+    var editingMcpServer by remember { mutableStateOf<McpServer?>(null) }
+    var showAddSkillSheet by remember { mutableStateOf(false) }
+    var editingSkill by remember { mutableStateOf<Skill?>(null) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // MCP Servers section
+        Text(
+            text = "MCP Servers",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Connect Model Context Protocol servers to give Kai access to additional tools.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        uiState.mcpServers.forEach { server ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = server.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            text = server.url,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Switch(
+                        checked = server.enabled,
+                        onCheckedChange = { enabled ->
+                            uiState.onSaveMcpServer(server.copy(enabled = enabled))
+                        },
+                    )
+                    IconButton(
+                        onClick = { uiState.onDeleteMcpServer(server.id) },
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+
+        OutlinedButton(
+            onClick = {
+                editingMcpServer = null
+                showAddMcpSheet = true
+            },
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Add MCP Server")
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        // Skills section
+        Text(
+            text = "Skills",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Define custom tools that POST to a webhook URL with JSON arguments.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        uiState.skills.forEach { skill ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                ),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = skill.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            text = skill.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = skill.url,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Switch(
+                        checked = skill.enabled,
+                        onCheckedChange = { enabled ->
+                            uiState.onSaveSkill(skill.copy(enabled = enabled))
+                        },
+                    )
+                    IconButton(
+                        onClick = { uiState.onDeleteSkill(skill.id) },
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+
+        OutlinedButton(
+            onClick = {
+                editingSkill = null
+                showAddSkillSheet = true
+            },
+            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Add Skill")
+        }
+    }
+
+    // Add/Edit MCP Server bottom sheet
+    if (showAddMcpSheet) {
+        McpServerSheet(
+            initial = editingMcpServer,
+            onDismiss = { showAddMcpSheet = false },
+            onSave = { server ->
+                uiState.onSaveMcpServer(server)
+                showAddMcpSheet = false
+            },
+        )
+    }
+
+    // Add/Edit Skill bottom sheet
+    if (showAddSkillSheet) {
+        SkillSheet(
+            initial = editingSkill,
+            onDismiss = { showAddSkillSheet = false },
+            onSave = { skill ->
+                uiState.onSaveSkill(skill)
+                showAddSkillSheet = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun McpServerSheet(
+    initial: McpServer?,
+    onDismiss: () -> Unit,
+    onSave: (McpServer) -> Unit,
+) {
+    var name by remember { mutableStateOf(initial?.name ?: "") }
+    var url by remember { mutableStateOf(initial?.url ?: "") }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .navigationBarsPadding(),
+        ) {
+            Text(
+                text = if (initial == null) "Add MCP Server" else "Edit MCP Server",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Spacer(Modifier.height(16.dp))
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlineTextFieldColors(),
+                singleLine = true,
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text("URL") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlineTextFieldColors(),
+                singleLine = true,
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = {
+                    if (name.isNotBlank() && url.isNotBlank()) {
+                        val id = initial?.id ?: name.replace(" ", "_").lowercase() + "_" + url.hashCode().toString().takeLast(6)
+                        onSave(McpServer(id = id, name = name.trim(), url = url.trim(), enabled = initial?.enabled ?: true))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
+                enabled = name.isNotBlank() && url.isNotBlank(),
+            ) {
+                Text("Save")
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun SkillSheet(
+    initial: Skill?,
+    onDismiss: () -> Unit,
+    onSave: (Skill) -> Unit,
+) {
+    var name by remember { mutableStateOf(initial?.name ?: "") }
+    var description by remember { mutableStateOf(initial?.description ?: "") }
+    var url by remember { mutableStateOf(initial?.url ?: "") }
+    var parameters by remember { mutableStateOf(initial?.parameters ?: emptyList()) }
+    var newParamName by remember { mutableStateOf("") }
+    var newParamDesc by remember { mutableStateOf("") }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .navigationBarsPadding(),
+        ) {
+            Text(
+                text = if (initial == null) "Add Skill" else "Edit Skill",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Spacer(Modifier.height(16.dp))
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlineTextFieldColors(),
+                singleLine = true,
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlineTextFieldColors(),
+            )
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text("Webhook URL") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlineTextFieldColors(),
+                singleLine = true,
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Parameters",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Spacer(Modifier.height(8.dp))
+            parameters.forEachIndexed { index, param ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = param.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        if (param.description.isNotBlank()) {
+                            Text(
+                                text = param.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { parameters = parameters.filterIndexed { i, _ -> i != index } },
+                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                    ) {
+                        Icon(Icons.Default.Clear, contentDescription = "Remove parameter")
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    value = newParamName,
+                    onValueChange = { newParamName = it },
+                    label = { Text("Param name") },
+                    modifier = Modifier.weight(1f),
+                    colors = outlineTextFieldColors(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = newParamDesc,
+                    onValueChange = { newParamDesc = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.weight(1f),
+                    colors = outlineTextFieldColors(),
+                    singleLine = true,
+                )
+                IconButton(
+                    onClick = {
+                        if (newParamName.isNotBlank()) {
+                            parameters = parameters + SkillParameter(
+                                name = newParamName.trim(),
+                                description = newParamDesc.trim(),
+                            )
+                            newParamName = ""
+                            newParamDesc = ""
+                        }
+                    },
+                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand),
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add parameter")
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = {
+                    if (name.isNotBlank() && url.isNotBlank()) {
+                        val id = initial?.id ?: name.replace(" ", "_").lowercase() + "_" + url.hashCode().toString().takeLast(6)
+                        onSave(
+                            Skill(
+                                id = id,
+                                name = name.trim(),
+                                description = description.trim(),
+                                url = url.trim(),
+                                parameters = parameters,
+                                enabled = initial?.enabled ?: true,
+                            ),
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().pointerHoverIcon(PointerIcon.Hand),
+                enabled = name.isNotBlank() && url.isNotBlank(),
+            ) {
+                Text("Save")
+            }
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

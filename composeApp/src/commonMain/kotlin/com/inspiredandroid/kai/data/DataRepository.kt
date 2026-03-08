@@ -1,5 +1,6 @@
 package com.inspiredandroid.kai.data
 
+import com.inspiredandroid.kai.network.mcp.McpServer
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.ui.chat.History
 import com.inspiredandroid.kai.ui.settings.SettingsModel
@@ -44,6 +45,14 @@ interface DataRepository {
     // Tool management
     fun getToolDefinitions(): List<ToolInfo>
     fun setToolEnabled(toolId: String, enabled: Boolean)
+
+    // Skills (custom webhook tools)
+    fun getSkills(): List<Skill>
+    fun saveSkills(skills: List<Skill>)
+
+    // MCP Servers
+    fun getMcpServers(): List<McpServer>
+    fun saveMcpServers(servers: List<McpServer>)
 
     // Soul (system prompt)
     fun getSoulText(): String

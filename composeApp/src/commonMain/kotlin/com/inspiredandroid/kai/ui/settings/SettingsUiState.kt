@@ -6,6 +6,8 @@ import com.inspiredandroid.kai.data.HeartbeatLogEntry
 import com.inspiredandroid.kai.data.MemoryEntry
 import com.inspiredandroid.kai.data.ScheduledTask
 import com.inspiredandroid.kai.data.Service
+import com.inspiredandroid.kai.data.Skill
+import com.inspiredandroid.kai.network.mcp.McpServer
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import org.jetbrains.compose.resources.StringResource
 
@@ -35,6 +37,7 @@ enum class SettingsTab {
     General,
     Services,
     Tools,
+    Integrations,
 }
 
 @Immutable
@@ -88,6 +91,12 @@ data class SettingsUiState(
     val uiScale: Float = 1.0f,
     val onChangeUiScale: (Float) -> Unit = {},
     val showUiScale: Boolean = false,
+    val skills: List<Skill> = emptyList(),
+    val mcpServers: List<McpServer> = emptyList(),
+    val onSaveSkill: (Skill) -> Unit = {},
+    val onDeleteSkill: (String) -> Unit = {},
+    val onSaveMcpServer: (McpServer) -> Unit = {},
+    val onDeleteMcpServer: (String) -> Unit = {},
 )
 
 @Immutable

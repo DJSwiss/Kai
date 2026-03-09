@@ -2,7 +2,7 @@
 Name=Kai
 Comment=AI assistant powered by Ollama, Gemini, ChatGPT and more
 Exec=kai-wrapper
-Icon=io.github.simonschubert.Kai
+Icon=io.github.djswiss.Kai
 Type=Application
 Categories=Utility;Network;
 Keywords=AI;Chat;Ollama;Gemini;LLM;Assistant;

@@ -10,12 +10,12 @@
 
 ### Web
 
-Try Kai directly in your browser at [simonschubert.github.io/Kai](https://simonschubert.github.io/Kai).
+Try Kai directly in your browser at [djswiss.github.io/Kai](https://djswiss.github.io/Kai).
 
 ### Homebrew (macOS)
 
 ```bash
-brew install --cask simonschubert/tap/kai
+brew install --cask djswiss/tap/kai
 ```
 
 ### AUR (Arch Linux)
@@ -28,12 +28,12 @@ yay -S kai-bin
 
 | Platform | Format | Download |
 |----------|--------|----------|
-| Android | APK | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| macOS | DMG | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Windows | MSI | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | DEB | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | RPM | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | AppImage | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
+| Android | APK | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| macOS | DMG | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Windows | MSI | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | DEB | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | RPM | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | AppImage | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
 
 ## First Steps
 

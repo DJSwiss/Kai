@@ -261,7 +261,7 @@ jobs:
         run: |
           python3 << 'EOF'
           import yaml
-          with open('flatpak/io.github.simonschubert.Kai.yaml', 'r') as f:
+          with open('flatpak/io.github.djswiss.Kai.yaml', 'r') as f:
               manifest = yaml.safe_load(f)
           for module in manifest['modules']:
               if module['name'] == 'kai':
@@ -273,14 +273,14 @@ jobs:
                               'dest-filename': 'Kai-linux-x86_64.tar.gz'
                           }
                           break
-          with open('flatpak/io.github.simonschubert.Kai.yaml', 'w') as f:
+          with open('flatpak/io.github.djswiss.Kai.yaml', 'w') as f:
               yaml.dump(manifest, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
           EOF
       - name: Build Flatpak Bundle
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: Kai.flatpak
-          manifest-path: flatpak/io.github.simonschubert.Kai.yaml
+          manifest-path: flatpak/io.github.djswiss.Kai.yaml
           cache-key: flatpak-builder-${{ github.sha }}
       - name: Upload Flatpak Artifact
         uses: actions/upload-artifact@v4
@@ -330,7 +330,7 @@ jobs:
             -scheme iosApp \
             -sdk iphoneos \
             -archivePath $PWD/build/Kai.xcarchive \
-            BUNDLE_ID="io.github.simonschubert.kai" \
+            BUNDLE_ID="io.github.djswiss.kai" \
             TEAM_ID="$APPLE_TEAM_ID" \
             APP_NAME="Kai" \
             CODE_SIGN_STYLE=Manual

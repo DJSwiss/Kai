@@ -3,7 +3,7 @@
 An **open-source AI assistant with persistent memory** that runs on **Android, iOS, Windows, Mac, Linux, and Web**.
 
 [:material-download: Get Started](getting-started.md){ .md-button .md-button--primary }
-[:material-github: GitHub](https://github.com/SimonSchubert/Kai){ .md-button }
+[:material-github: GitHub](https://github.com/DJSwiss/Kai){ .md-button }
 
 ## Overview
 
@@ -113,7 +113,7 @@ Plus a built-in **Free** tier that requires no API key.
 
 ## Links
 
-- [GitHub Repository](https://github.com/SimonSchubert/Kai)
-- [Issue Tracker](https://github.com/SimonSchubert/Kai/issues)
-- [Releases](https://github.com/SimonSchubert/Kai/releases)
-- [Web App](https://simonschubert.github.io/Kai)
+- [GitHub Repository](https://github.com/DJSwiss/Kai)
+- [Issue Tracker](https://github.com/DJSwiss/Kai/issues)
+- [Releases](https://github.com/DJSwiss/Kai/releases)
+- [Web App](https://djswiss.github.io/Kai)

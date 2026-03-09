@@ -365,7 +365,7 @@ private fun BottomInfo() {
                 .clip(CircleShape)
                 .size(24.dp)
                 .clickable(onClick = {
-                    uriHandler.openUri("https://github.com/SimonSchubert/Kai")
+                    uriHandler.openUri("https://github.com/DJSwiss/Kai")
                 })
                 .pointerHoverIcon(PointerIcon.Hand),
             painter = painterResource(Res.drawable.github_mark),
@@ -380,7 +380,7 @@ private fun BottomInfo() {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
-                .clickable { uriHandler.openUri("https://simonschubert.github.io/Kai/docs/") }
+                .clickable { uriHandler.openUri("https://djswiss.github.io/Kai/docs/") }
                 .pointerHoverIcon(PointerIcon.Hand),
         )
     }
@@ -443,7 +443,7 @@ private fun FreeSettings(
             val uriHandler = LocalUriHandler.current
             Button(
                 onClick = {
-                    uriHandler.openUri("https://github.com/sponsors/SimonSchubert")
+                    uriHandler.openUri("https://github.com/sponsors/DJSwiss")
                 },
                 Modifier
                     .align(CenterHorizontally)

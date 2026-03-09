@@ -4,19 +4,19 @@
 
 An **open-source AI assistant with persistent memory** that runs on **Android, iOS, Windows, Mac, Linux, and Web**.
 
-> **[Documentation](https://simonschubert.github.io/Kai/docs/)**
+> **[Documentation](https://djswiss.github.io/Kai/docs/)**
 
 ## Installation
 
-[![App Store](https://raw.githubusercontent.com/SimonSchubert/Kai/main/screenshots/app_store_badge.png)](https://apps.apple.com/us/app/kai-ai/id6758148023)
-[![Play Store](https://raw.githubusercontent.com/SimonSchubert/Kai/main/screenshots/play_store_badge.png)](https://play.google.com/store/apps/details?id=com.inspiredandroid.kai)
-[![F-Droid](https://raw.githubusercontent.com/SimonSchubert/Kai/main/screenshots/fdroid_badge.png)](https://f-droid.org/en/packages/com.inspiredandroid.kai/)
-[![Web](https://raw.githubusercontent.com/SimonSchubert/Kai/main/screenshots/web_badge.png)](https://simonschubert.github.io/Kai)
+[![App Store](https://raw.githubusercontent.com/DJSwiss/Kai/main/screenshots/app_store_badge.png)](https://apps.apple.com/us/app/kai-ai/id6758148023)
+[![Play Store](https://raw.githubusercontent.com/DJSwiss/Kai/main/screenshots/play_store_badge.png)](https://play.google.com/store/apps/details?id=com.inspiredandroid.kai)
+[![F-Droid](https://raw.githubusercontent.com/DJSwiss/Kai/main/screenshots/fdroid_badge.png)](https://f-droid.org/en/packages/com.inspiredandroid.kai/)
+[![Web](https://raw.githubusercontent.com/DJSwiss/Kai/main/screenshots/web_badge.png)](https://djswiss.github.io/Kai)
 
 Homebrew (macOS):
 
 ```
-brew install --cask simonschubert/tap/kai
+brew install --cask djswiss/tap/kai
 ```
 
 AUR (Arch Linux):
@@ -29,12 +29,12 @@ yay -S kai-bin
 
 | Platform | Format | Download |
 |----------|--------|----------|
-| Android | APK | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| macOS | DMG | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Windows | MSI | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | DEB | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | RPM | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
-| Linux | AppImage | [GitHub Releases](https://github.com/SimonSchubert/Kai/releases) |
+| Android | APK | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| macOS | DMG | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Windows | MSI | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | DEB | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | RPM | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
+| Linux | AppImage | [GitHub Releases](https://github.com/DJSwiss/Kai/releases) |
 
 ## Features
 

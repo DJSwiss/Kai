@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.simonschubert.Kai</id>
+  <id>io.github.djswiss.Kai</id>
 
   <name>Kai</name>
   <summary>AI assistant powered by Ollama, Gemini, ChatGPT and more</summary>
@@ -8,8 +8,8 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>Apache-2.0</project_license>
 
-  <developer id="io.github.simonschubert">
-    <name>Simon Schubert</name>
+  <developer id="io.github.djswiss">
+    <name>DJSwiss</name>
   </developer>
 
   <description>
@@ -30,11 +30,11 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">io.github.simonschubert.Kai.desktop</launchable>
+  <launchable type="desktop-id">io.github.djswiss.Kai.desktop</launchable>
 
-  <url type="homepage">https://github.com/SimonSchubert/Kai</url>
-  <url type="bugtracker">https://github.com/SimonSchubert/Kai/issues</url>
-  <url type="vcs-browser">https://github.com/SimonSchubert/Kai</url>
+  <url type="homepage">https://github.com/DJSwiss/Kai</url>
+  <url type="bugtracker">https://github.com/DJSwiss/Kai/issues</url>
+  <url type="vcs-browser">https://github.com/DJSwiss/Kai</url>
 
   <branding>
     <color type="primary" scheme_preference="light">#e8f5e9</color>
@@ -44,7 +44,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>Main chat interface</caption>
-      <image>https://raw.githubusercontent.com/SimonSchubert/Kai/v1.7.9/screenshots/desktop-1.png</image>
+      <image>https://raw.githubusercontent.com/DJSwiss/Kai/v1.7.9/screenshots/desktop-1.png</image>
     </screenshot>
   </screenshots>
 
@@ -63,28 +63,28 @@
 
   <releases>
     <release version="1.7.9" date="2026-03-03">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.9</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.9</url>
     </release>
     <release version="1.7.8" date="2026-03-02">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.8</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.8</url>
     </release>
     <release version="1.7.7" date="2026-02-26">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.7</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.7</url>
     </release>
     <release version="1.7.6" date="2026-02-25">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.6</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.6</url>
     </release>
     <release version="1.7.5" date="2026-02-24">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.5</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.5</url>
     </release>
     <release version="1.7.4" date="2026-02-24">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.4</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.4</url>
     </release>
     <release version="1.7.3" date="2026-02-21">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.3</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.3</url>
     </release>
     <release version="1.7.2" date="2026-02-19">
-      <url type="details">https://github.com/SimonSchubert/Kai/releases/tag/v1.7.2</url>
+      <url type="details">https://github.com/DJSwiss/Kai/releases/tag/v1.7.2</url>
     </release>
   </releases>
 </component>

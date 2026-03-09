@@ -239,9 +239,130 @@ jobs:
           name: appimage-package
           path: Kai-*.AppImage
 
+  flatpak:
+    name: Generate Flatpak Bundle
+    needs: linux-tar
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-24.08
+      options: --privileged
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+      - name: Download Linux Tarball Artifact
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: linux-tar-package
+          path: flatpak/
+      - name: Update manifest to use local tarball
+        run: |
+          python3 << 'EOF'
+          import yaml
+          with open('flatpak/io.github.simonschubert.Kai.yaml', 'r') as f:
+              manifest = yaml.safe_load(f)
+          for module in manifest['modules']:
+              if module['name'] == 'kai':
+                  for i, source in enumerate(module['sources']):
+                      if source.get('type') == 'file' and 'url' in source:
+                          module['sources'][i] = {
+                              'type': 'file',
+                              'path': 'Kai-linux-x86_64.tar.gz',
+                              'dest-filename': 'Kai-linux-x86_64.tar.gz'
+                          }
+                          break
+          with open('flatpak/io.github.simonschubert.Kai.yaml', 'w') as f:
+              yaml.dump(manifest, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+          EOF
+      - name: Build Flatpak Bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Kai.flatpak
+          manifest-path: flatpak/io.github.simonschubert.Kai.yaml
+          cache-key: flatpak-builder-${{ github.sha }}
+      - name: Upload Flatpak Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-package
+          path: Kai.flatpak
+
+  ios:
+    name: Generate iOS IPA
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set execution flag for gradlew
+        run: chmod +x gradlew
+      - name: Setup signing
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$APPLE_PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+      - name: Build iOS framework
+        run: bash ./gradlew :composeApp:assembleXCFramework --stacktrace
+      - name: Archive iOS app
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcodebuild archive \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -sdk iphoneos \
+            -archivePath $PWD/build/Kai.xcarchive \
+            BUNDLE_ID="io.github.simonschubert.kai" \
+            TEAM_ID="$APPLE_TEAM_ID" \
+            APP_NAME="Kai" \
+            CODE_SIGN_STYLE=Manual
+      - name: Export IPA
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath $PWD/build/Kai.xcarchive \
+            -exportPath $PWD/build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ipa/*.ipa
+
   release:
-    name: Release APK, DMG, MSI, DEB, RPM, AppImage and Tarball
-    needs: [apk, dmg, msi, deb, rpm, appimage, linux-tar]
+    name: Release APK, DMG, MSI, DEB, RPM, AppImage, Tarball, Flatpak and IPA
+    needs: [apk, dmg, msi, deb, rpm, appimage, linux-tar, flatpak, ios]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -284,6 +405,16 @@ jobs:
         uses: actions/download-artifact@v4.1.7
         with:
           name: linux-tar-package
+
+      - name: Download Flatpak Artifact
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: flatpak-package
+
+      - name: Download iOS IPA Artifact
+        uses: actions/download-artifact@v4.1.7
+        with:
+          name: ios-ipa
 
       - name: List downloaded files (for debugging)
         run: ls -la
@@ -390,3 +521,27 @@ jobs:
           asset_path: Kai-linux-x86_64.tar.gz
           asset_name: Kai-${{ steps.get_version.outputs.version }}-linux-x86_64.tar.gz
           asset_content_type: application/gzip
+
+      - name: Upload Flatpak to Github Release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Kai.flatpak
+          asset_name: Kai-${{ steps.get_version.outputs.version }}-linux.flatpak
+          asset_content_type: application/octet-stream
+
+      - name: Get IPA filename
+        id: ipa
+        run: echo "file=$(ls *.ipa | head -n1)" >> $GITHUB_OUTPUT
+
+      - name: Upload IPA to Github Release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.ipa.outputs.file }}
+          asset_name: Kai-${{ steps.get_version.outputs.version }}-ios.ipa
+          asset_content_type: application/octet-stream

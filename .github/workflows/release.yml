@@ -243,6 +243,7 @@ jobs:
     name: Generate Flatpak Bundle
     needs: linux-tar
     runs-on: ubuntu-latest
+    continue-on-error: true
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-24.08
       options: --privileged
@@ -291,6 +292,7 @@ jobs:
   ios:
     name: Generate iOS IPA
     runs-on: macos-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -408,11 +410,13 @@ jobs:
 
       - name: Download Flatpak Artifact
         uses: actions/download-artifact@v4.1.7
+        continue-on-error: true
         with:
           name: flatpak-package
 
       - name: Download iOS IPA Artifact
         uses: actions/download-artifact@v4.1.7
+        continue-on-error: true
         with:
           name: ios-ipa
 
@@ -523,6 +527,7 @@ jobs:
           asset_content_type: application/gzip
 
       - name: Upload Flatpak to Github Release
+        continue-on-error: true
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -534,9 +539,12 @@ jobs:
 
       - name: Get IPA filename
         id: ipa
-        run: echo "file=$(ls *.ipa | head -n1)" >> $GITHUB_OUTPUT
+        continue-on-error: true
+        run: echo "file=$(ls *.ipa 2>/dev/null | head -n1)" >> $GITHUB_OUTPUT
 
       - name: Upload IPA to Github Release
+        continue-on-error: true
+        if: ${{ steps.ipa.outputs.file != '' }}
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
